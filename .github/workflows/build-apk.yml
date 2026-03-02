@@ -140,10 +140,21 @@ jobs:
       - name: Register plugin in MainActivity
         run: |
           MAIN="android/app/src/main/java/com/appota/demo/MainActivity.java"
-          sed -i 's/import com.getcapacitor.BridgeActivity;/import com.getcapacitor.BridgeActivity;\nimport com.appota.demo.plugins.OtaBundlePlugin;/' "$MAIN"
-          sed -i 's/public class MainActivity extends BridgeActivity {/public class MainActivity extends BridgeActivity {\n    @Override\n    protected void onCreate(android.os.Bundle savedInstanceState) {\n        registerPlugin(OtaBundlePlugin.class);\n        super.onCreate(savedInstanceState);\n    }\n}/' "$MAIN"
-          # Remove the extra closing brace from original
-          sed -i '$ d' "$MAIN"
+          cat > "$MAIN" << 'EOF'
+          package com.appota.demo;
+
+          import android.os.Bundle;
+          import com.getcapacitor.BridgeActivity;
+          import com.appota.demo.plugins.OtaBundlePlugin;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  registerPlugin(OtaBundlePlugin.class);
+                  super.onCreate(savedInstanceState);
+              }
+          }
+          EOF
 
       - name: Sync Capacitor
         run: npx cap sync android
