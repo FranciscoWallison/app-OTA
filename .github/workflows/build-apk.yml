@@ -1,0 +1,163 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install --include=dev
+
+      - name: Build Angular
+        run: npx ng build --configuration production
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Create native OtaBundle plugin
+        run: |
+          PLUGIN_DIR="android/app/src/main/java/com/appota/demo/plugins"
+          mkdir -p "$PLUGIN_DIR"
+
+          cat > "$PLUGIN_DIR/OtaBundlePlugin.java" << 'JAVA'
+          package com.appota.demo.plugins;
+
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.Bridge;
+
+          import java.io.*;
+          import java.util.zip.ZipEntry;
+          import java.util.zip.ZipInputStream;
+
+          @CapacitorPlugin(name = "OtaBundle")
+          public class OtaBundlePlugin extends Plugin {
+
+              @PluginMethod
+              public void extractZip(PluginCall call) {
+                  String zipPath = call.getString("zipPath");
+                  String targetDir = call.getString("targetDir");
+
+                  if (zipPath == null || targetDir == null) {
+                      call.reject("zipPath and targetDir are required");
+                      return;
+                  }
+
+                  try {
+                      File targetDirectory = new File(targetDir);
+                      if (!targetDirectory.exists()) {
+                          targetDirectory.mkdirs();
+                      }
+
+                      int fileCount = 0;
+                      try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipPath))) {
+                          ZipEntry entry;
+                          byte[] buffer = new byte[8192];
+
+                          while ((entry = zis.getNextEntry()) != null) {
+                              File outFile = new File(targetDir, entry.getName());
+
+                              // Prevent zip slip
+                              if (!outFile.getCanonicalPath().startsWith(targetDirectory.getCanonicalPath())) {
+                                  call.reject("Zip slip detected");
+                                  return;
+                              }
+
+                              if (entry.isDirectory()) {
+                                  outFile.mkdirs();
+                              } else {
+                                  outFile.getParentFile().mkdirs();
+                                  try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                                      int len;
+                                      while ((len = zis.read(buffer)) > 0) {
+                                          fos.write(buffer, 0, len);
+                                      }
+                                  }
+                                  fileCount++;
+                              }
+                              zis.closeEntry();
+                          }
+                      }
+
+                      JSObject result = new JSObject();
+                      result.put("success", true);
+                      result.put("path", targetDir);
+                      result.put("fileCount", fileCount);
+                      call.resolve(result);
+                  } catch (Exception e) {
+                      call.reject("Failed to extract zip: " + e.getMessage());
+                  }
+              }
+
+              @PluginMethod
+              public void validateBundle(PluginCall call) {
+                  String path = call.getString("path");
+                  if (path == null) {
+                      call.reject("path is required");
+                      return;
+                  }
+
+                  File indexFile = new File(path, "index.html");
+                  JSObject result = new JSObject();
+                  result.put("valid", indexFile.exists());
+                  result.put("path", path);
+                  call.resolve(result);
+              }
+
+              @PluginMethod
+              public void resetToDefault(PluginCall call) {
+                  try {
+                      Bridge bridge = getBridge();
+                      bridge.setServerBasePath("");
+                      call.resolve();
+                  } catch (Exception e) {
+                      call.reject("Failed to reset: " + e.getMessage());
+                  }
+              }
+          }
+          JAVA
+
+      - name: Register plugin in MainActivity
+        run: |
+          MAIN="android/app/src/main/java/com/appota/demo/MainActivity.java"
+          sed -i 's/import com.getcapacitor.BridgeActivity;/import com.getcapacitor.BridgeActivity;\nimport com.appota.demo.plugins.OtaBundlePlugin;/' "$MAIN"
+          sed -i 's/public class MainActivity extends BridgeActivity {/public class MainActivity extends BridgeActivity {\n    @Override\n    protected void onCreate(android.os.Bundle savedInstanceState) {\n        registerPlugin(OtaBundlePlugin.class);\n        super.onCreate(savedInstanceState);\n    }\n}/' "$MAIN"
+          # Remove the extra closing brace from original
+          sed -i '$ d' "$MAIN"
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: android
+        run: chmod +x gradlew && ./gradlew assembleDebug
+
+      - name: Get version
+        id: version
+        run: echo "VERSION=$(node -e "console.log(require('./package.json').version)")" >> $GITHUB_OUTPUT
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-ota-v${{ steps.version.outputs.VERSION }}-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
