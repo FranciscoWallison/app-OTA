@@ -15,8 +15,17 @@ export class AppComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    await this.themeService.initialize();
-    await this.otaManager.initialize();
-    this.otaManager.confirmHealthy();
+    try {
+      await this.themeService.initialize();
+    } catch (error) {
+      console.error('[APP] Theme init failed:', error);
+    }
+
+    try {
+      await this.otaManager.initialize();
+      this.otaManager.confirmHealthy();
+    } catch (error) {
+      console.error('[APP] OTA init failed:', error);
+    }
   }
 }
