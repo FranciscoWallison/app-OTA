@@ -159,6 +159,17 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
+      - name: Verify web assets
+        run: |
+          echo "=== Assets in android ==="
+          ls -la android/app/src/main/assets/public/ || echo "NO public/ folder found!"
+          echo "=== index.html ==="
+          head -10 android/app/src/main/assets/public/index.html || echo "NO index.html!"
+          echo "=== MainActivity.java ==="
+          cat android/app/src/main/java/com/appota/demo/MainActivity.java
+          echo "=== OtaBundlePlugin.java (first 5 lines) ==="
+          head -5 android/app/src/main/java/com/appota/demo/plugins/OtaBundlePlugin.java
+
       - name: Build debug APK
         working-directory: android
         run: chmod +x gradlew && ./gradlew assembleDebug
