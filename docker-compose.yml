@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8100:8100"
+    volumes:
+      - .:/workspace
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    command: bash -c "npm install && ionic serve --external --poll 2000"
+    stdin_open: true
+    tty: true

@@ -1,0 +1,74 @@
+name: Deploy OTA Bundle
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --include=dev
+
+      - name: Build Angular
+        run: npx ng build --configuration production
+
+      - name: Remove source maps
+        run: find www -name "*.map" -delete
+
+      - name: Get version
+        id: version
+        run: echo "VERSION=$(node -e "console.log(require('./package.json').version)")" >> $GITHUB_OUTPUT
+
+      - name: Create bundle zip
+        run: cd www && zip -r ../bundle-${{ steps.version.outputs.VERSION }}.zip . && cd ..
+
+      - name: Calculate SHA-256
+        id: hash
+        run: echo "SHA256=$(sha256sum bundle-${{ steps.version.outputs.VERSION }}.zip | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+
+      - name: Checkout server-OTA
+        uses: actions/checkout@v4
+        with:
+          repository: FranciscoWallison/server-OTA
+          token: ${{ secrets.DEPLOY_TOKEN }}
+          path: server-ota
+
+      - name: Deploy bundle
+        run: |
+          cp bundle-${{ steps.version.outputs.VERSION }}.zip server-ota/public/bundles/
+          BUNDLE_SIZE=$(stat --printf='%s' bundle-${{ steps.version.outputs.VERSION }}.zip)
+          node -e "
+            const fs = require('fs');
+            const mp = 'server-ota/public/bundles/manifest.json';
+            let m;
+            try { m = JSON.parse(fs.readFileSync(mp, 'utf-8')); }
+            catch { m = { versions: [], currentVersion: '1.0.0', minVersion: '1.0.0' }; }
+            const v = '${{ steps.version.outputs.VERSION }}';
+            m.versions = m.versions.filter(x => x.version !== v);
+            m.versions.push({
+              version: v,
+              sha256: '${{ steps.hash.outputs.SHA256 }}',
+              size: ${BUNDLE_SIZE},
+              createdAt: new Date().toISOString()
+            });
+            m.currentVersion = v;
+            fs.writeFileSync(mp, JSON.stringify(m, null, 2));
+          "
+
+      - name: Push to server-OTA
+        run: |
+          cd server-ota
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/bundles/
+          git commit -m "OTA: deploy bundle v${{ steps.version.outputs.VERSION }}"
+          git push

@@ -1,0 +1,136 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>OTA Demo</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- 1. HERO: big gradient area with version badge -->
+  <div class="hero" [style.background]="'linear-gradient(135deg, ' + activeTheme.primary + ', ' + activeTheme.primaryTint + ')'">
+    <div class="version-badge">v{{ currentVersion }}</div>
+    <div class="theme-name">{{ activeTheme.name }}</div>
+  </div>
+
+  <!-- 2. THEME SELECTOR: 3 color circles -->
+  <div class="theme-selector">
+    @for (theme of themes; track theme.id) {
+      <button class="theme-btn" [class.active]="activeTheme.id === theme.id"
+        [style.background]="theme.primary" (click)="selectTheme(theme.id)">
+      </button>
+    }
+  </div>
+
+  <!-- 3. OTA STATUS card -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="cloud-download-outline"></ion-icon> OTA Status
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list lines="none">
+        <ion-item>
+          <ion-label>Versao</ion-label>
+          <ion-note slot="end">{{ currentVersion }}</ion-note>
+        </ion-item>
+        <ion-item>
+          <ion-label>Plataforma</ion-label>
+          <ion-note slot="end">{{ platform }}</ion-note>
+        </ion-item>
+      </ion-list>
+      @if (updateMessage) {
+        <p class="update-msg">{{ updateMessage }}</p>
+      }
+      <ion-button expand="block" (click)="checkForUpdate()" [disabled]="checkingUpdate">
+        @if (checkingUpdate) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          Verificar Atualizacao
+        }
+      </ion-button>
+      <ion-button expand="block" color="danger" fill="outline" (click)="resetToBaseline()">
+        Resetar para Baseline
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 4. HAPTICS card -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="phone-portrait-outline"></ion-icon> Vibracao
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @if (!hapticsAvailable) {
+        <p class="unavailable">Plugin nao disponivel (modo web)</p>
+      }
+      <div class="button-row">
+        <ion-button (click)="vibrate()" [disabled]="!hapticsAvailable">Vibrar</ion-button>
+        <ion-button (click)="impactHaptic()" [disabled]="!hapticsAvailable">Impacto</ion-button>
+        <ion-button (click)="notificationHaptic()" [disabled]="!hapticsAvailable">Notificacao</ion-button>
+      </div>
+      @if (lastHaptic) {
+        <ion-chip>
+          <ion-label>{{ lastHaptic }}</ion-label>
+        </ion-chip>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 5. CAMERA card -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="camera-outline"></ion-icon> Camera
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @if (!cameraAvailable) {
+        <p class="unavailable">Plugin nao disponivel (modo web)</p>
+      }
+      <ion-button expand="block" (click)="takePhoto()" [disabled]="!cameraAvailable">
+        Tirar Foto
+      </ion-button>
+      @if (capturedPhoto) {
+        <img [src]="capturedPhoto" class="photo-preview" alt="Foto capturada" />
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 6. GEOLOCATION card -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="location-outline"></ion-icon> Geolocalizacao
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @if (!geoAvailable) {
+        <p class="unavailable">Plugin nao disponivel (modo web)</p>
+      }
+      <ion-button expand="block" (click)="getLocation()" [disabled]="!geoAvailable || geoLoading">
+        @if (geoLoading) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          Obter Localizacao
+        }
+      </ion-button>
+      @if (latitude !== null) {
+        <ion-list lines="none">
+          <ion-item>
+            <ion-label>Latitude</ion-label>
+            <ion-note slot="end">{{ latitude.toFixed(6) }}</ion-note>
+          </ion-item>
+          <ion-item>
+            <ion-label>Longitude</ion-label>
+            <ion-note slot="end">{{ longitude?.toFixed(6) }}</ion-note>
+          </ion-item>
+        </ion-list>
+      }
+      @if (geoError) {
+        <p class="error-msg">{{ geoError }}</p>
+      }
+    </ion-card-content>
+  </ion-card>
+</ion-content>

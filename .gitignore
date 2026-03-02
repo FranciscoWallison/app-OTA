@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build output
+www/
+dist/
+out-tsc/
+
+# Native projects (generated via cap add)
+android/
+ios/
+
+# Angular cache
+.angular/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files with secrets
+src/environments/environment.local.ts
+
+# Source maps in production
+*.map
+
+# Capacitor
+capacitor.config.js
