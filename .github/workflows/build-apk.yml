@@ -137,6 +137,20 @@ jobs:
           }
           JAVA
 
+      - name: Add Android permissions
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          # Add permissions before the <application> tag
+          sed -i '/<application/i \
+              <uses-permission android:name="android.permission.CAMERA" />\
+              <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\
+              <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />\
+              <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />\
+              <uses-permission android:name="android.permission.VIBRATE" />\
+              <uses-feature android:name="android.hardware.camera" android:required="false" />\
+              <uses-feature android:name="android.hardware.location.gps" android:required="false" />' "$MANIFEST"
+
       - name: Register plugin in MainActivity
         run: |
           MAIN="android/app/src/main/java/com/appota/demo/MainActivity.java"
