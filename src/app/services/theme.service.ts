@@ -17,7 +17,7 @@ export interface AppTheme {
   tertiaryRgb: string;
 }
 
-const THEME_KEY = 'app-theme';
+const THEME_KEY = 'app-theme-1.2.2';
 
 export const APP_THEMES: AppTheme[] = [
   {
