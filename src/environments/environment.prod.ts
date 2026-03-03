@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  appVersion: '0.0.0',
   otaServerUrl: 'https://server-ota.vercel.app',
   versionCheckIntervalMs: 5 * 60 * 1000,
   maxCachedBundles: 3,

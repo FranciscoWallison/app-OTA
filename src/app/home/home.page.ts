@@ -15,6 +15,7 @@ import {
   cameraOutline, locationOutline,
 } from 'ionicons/icons';
 
+import { environment } from '../../environments/environment';
 import { OtaManagerService } from '../services/ota-manager.service';
 import { ThemeService, AppTheme, APP_THEMES } from '../services/theme.service';
 
@@ -35,6 +36,7 @@ export class HomePage implements OnInit {
   activeTheme: AppTheme = APP_THEMES[0];
 
   // OTA
+  buildVersion = environment.appVersion;
   currentVersion = '1.0.0';
   platform = 'web';
   checkingUpdate = false;

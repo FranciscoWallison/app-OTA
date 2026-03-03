@@ -7,7 +7,7 @@
 <ion-content>
   <!-- 1. HERO: big gradient area with version badge -->
   <div class="hero" [style.background]="'linear-gradient(135deg, ' + activeTheme.primary + ', ' + activeTheme.primaryTint + ')'">
-    <div class="version-badge">v{{ currentVersion }}</div>
+    <div class="version-badge">v{{ buildVersion }}</div>
     <div class="theme-name">{{ activeTheme.name }}</div>
   </div>
 
@@ -30,8 +30,12 @@
     <ion-card-content>
       <ion-list lines="none">
         <ion-item>
-          <ion-label>Versao</ion-label>
-          <ion-note slot="end">{{ currentVersion }}</ion-note>
+          <ion-label>APK Build</ion-label>
+          <ion-note slot="end">v{{ buildVersion }}</ion-note>
+        </ion-item>
+        <ion-item>
+          <ion-label>Bundle OTA</ion-label>
+          <ion-note slot="end">v{{ currentVersion }}</ion-note>
         </ion-item>
         <ion-item>
           <ion-label>Plataforma</ion-label>
