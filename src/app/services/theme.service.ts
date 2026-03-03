@@ -92,7 +92,7 @@ export class ThemeService {
 
   async initialize(): Promise<void> {
     const { value } = await Preferences.get({ key: THEME_KEY });
-    const theme = APP_THEMES.find((t) => t.id === value) ?? APP_THEMES[0];
+    const theme = APP_THEMES.find((t) => t.id === value) ?? APP_THEMES[3];
     this.applyTheme(theme);
   }
 
