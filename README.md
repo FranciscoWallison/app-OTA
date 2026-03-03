@@ -39,28 +39,9 @@ O ciclo completo envolve dois repositorios GitHub e a Vercel:
 
 ## Fluxo de Atualizacao OTA
 
-```
-App abre
-   |
-   v
-OtaManagerService.initialize()
-   |
-   +- GET /api/version  (header: X-Current-Version: 1.0.0)
-   |     Resposta: { version: "1.2.0", sha256: "abc...", hmac: "..." }
-   |
-   +- Valida HMAC (confirma que veio do servidor legitimo)
-   |
-   +- GET /api/bundle/1.2.0  -> baixa bundle-1.2.0.zip
-   |
-   +- Verifica sha256 do arquivo baixado
-   |
-   +- Extrai zip em: /data/app/.../files/bundles/1.2.0/
-   |
-   +- Salva caminho no SharedPreferences (Capacitor le na proxima abertura)
+<img width="3464" height="7929" alt="App Version Update Pipeline-2026-03-03-142057" src="https://github.com/user-attachments/assets/f2b2ffa5-e19f-4747-ab0e-f933bee1bcaa" />
 
-Usuario reinicia o app
-   +- WebView carrega de: /files/bundles/1.2.0/  <- nova versao ativa
-```
+
 
 ---
 
