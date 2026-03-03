@@ -370,7 +370,9 @@ export class OtaManagerService {
    */
   async forceCheckForUpdate(): Promise<boolean> {
     console.log('[OTA] Force checking for update (bypassing rate limit)...');
+    // Reset both rate limit and checking flag
     this.state.lastCheckAt = null;
+    this.checking = false;
     await this.saveState();
 
     const versionData = await this.checkForUpdate();
