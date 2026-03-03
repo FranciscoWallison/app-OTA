@@ -183,6 +183,13 @@ export class HomePage implements OnInit {
     this.geoError = null;
 
     try {
+      const perm = await Geolocation.requestPermissions();
+      if (perm.location === 'denied') {
+        this.geoError = 'Permissao de localizacao negada.';
+        this.geoLoading = false;
+        return;
+      }
+
       const position = await Geolocation.getCurrentPosition({
         enableHighAccuracy: true,
         timeout: 10000,
