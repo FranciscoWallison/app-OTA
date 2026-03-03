@@ -62,11 +62,25 @@ export const APP_THEMES: AppTheme[] = [
     tertiary: '#f59e0b',
     tertiaryRgb: '245, 158, 11',
   },
+  {
+    id: 'red',
+    name: 'Vermelho Fogo',
+    emoji: '🔴',
+    primary: '#e63946',
+    primaryRgb: '230, 57, 70',
+    primaryContrast: '#ffffff',
+    primaryShade: '#cc323e',
+    primaryTint: '#e94d59',
+    secondary: '#f4a261',
+    secondaryRgb: '244, 162, 97',
+    tertiary: '#e76f51',
+    tertiaryRgb: '231, 111, 81',
+  },
 ];
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
-  private currentTheme$ = new BehaviorSubject<AppTheme>(APP_THEMES[0]);
+  private currentTheme$ = new BehaviorSubject<AppTheme>(APP_THEMES[3]);
 
   getTheme(): Observable<AppTheme> {
     return this.currentTheme$.asObservable();
