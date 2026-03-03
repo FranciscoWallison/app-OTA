@@ -15,38 +15,8 @@ O ciclo completo envolve dois repositorios GitHub e a Vercel:
 3. **Vercel** detecta o push no `server-OTA` e faz deploy automatico
 4. **App no celular** consulta a API, baixa o bundle e aplica sem reinstalar
 
-```
-Desenvolvedor
-  git push -> main (app-OTA)
-      |
-      v
-GitHub Actions (app-OTA)
-  deploy-ota.yml               build-apk.yml
-  1. ng build                  1. ng build
-  2. zip www/                  2. cap add android
-  3. sha256                    3. gradle assembleDebug
-  4. push server-OTA           4. upload .apk artifact
-      |
-      v  (git push via DEPLOY_TOKEN)
-GitHub: FranciscoWallison/server-OTA
-  public/bundles/
-  +-- manifest.json        (indice de versoes + sha256)
-  +-- bundle-1.1.0.zip     (www/ compactado)
-  +-- bundle-1.2.0.zip
-      |
-      v  (auto-deploy Vercel)
-Vercel: https://server-ota.vercel.app
-  GET  /api/version           (app verifica atualizacao)
-  GET  /api/bundle/:version   (app baixa o zip)
-  GET  /api/health            (healthcheck)
-  POST /api/report            (app reporta resultado)
-      |
-      v  (HTTPS)
-App instalado no celular
-  OtaManagerService verifica a cada 5 min
-  Baixa bundle -> extrai -> troca pasta www/ ativa
-  Proxima abertura: nova versao carregada
-```
+<img width="7736" height="8192" alt="App Version Update Pipeline-2026-03-03-131755" src="https://github.com/user-attachments/assets/092eee20-c015-424d-b935-09c861716569" />
+
 
 ---
 
