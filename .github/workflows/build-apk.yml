@@ -2,6 +2,8 @@ name: Build APK
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
   build-apk:
@@ -128,7 +130,12 @@ jobs:
               public void resetToDefault(PluginCall call) {
                   try {
                       Bridge bridge = getBridge();
-                      bridge.setServerBasePath("");
+                      // Clear persisted server path so next launch uses default www/
+                      android.content.SharedPreferences prefs = getContext()
+                          .getSharedPreferences("CapWebViewSettings", android.content.Context.MODE_PRIVATE);
+                      prefs.edit().remove("serverBasePath").apply();
+                      // Reload from default assets
+                      bridge.setServerBasePath(null);
                       call.resolve();
                   } catch (Exception e) {
                       call.reject("Failed to reset: " + e.getMessage());

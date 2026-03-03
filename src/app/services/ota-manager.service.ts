@@ -482,7 +482,11 @@ export class OtaManagerService {
     await this.saveState();
     await Preferences.remove({ key: KEYS.ACTIVE_BUNDLE_PATH });
     await Preferences.remove({ key: KEYS.STAGED_VERSION });
-    await OtaBundle.resetToDefault();
+    try {
+      await OtaBundle.resetToDefault();
+    } catch (error) {
+      console.warn('[OTA] resetToDefault plugin call failed, clearing state only:', error);
+    }
     await this.reportStatus('baseline_revert', '1.0.0');
   }
 

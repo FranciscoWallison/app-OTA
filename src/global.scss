@@ -36,7 +36,11 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
-/* Safe area: ensure footer doesn't overlap with device home indicator / navigation bar */
+/* Safe area */
+ion-content {
+  --padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
 ion-footer ion-toolbar:last-of-type {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
